@@ -1,3 +1,2 @@
 ---
 trivy_key_url: https://get.trivy.dev/deb/public.key
-trivy_repo: "deb [signed-by=/etc/apt/keyrings/trivy.asc] https://get.trivy.dev/deb generic main"

@@ -1,21 +1,12 @@
 ---
-- name: Ensure keyrings directory
-  ansible.builtin.file:
-    path: /etc/apt/keyrings
-    state: directory
-    mode: "0755"
-
-- name: Add Trivy repository key
-  ansible.builtin.get_url:
-    url: "{{ trivy_key_url }}"
-    dest: /etc/apt/keyrings/trivy.asc
-    mode: "0644"
-
-- name: Add Trivy repository
-  ansible.builtin.apt_repository:
-    repo: "{{ trivy_repo }}"
-    filename: trivy
-    state: present
+- name: Add Trivy apt repository (deb822)
+  ansible.builtin.deb822_repository:
+    name: trivy
+    types: deb
+    uris: https://get.trivy.dev/deb
+    suites: generic
+    components: main
+    signed_by: "{{ trivy_key_url }}"
 
 - name: Install Trivy
   ansible.builtin.apt:

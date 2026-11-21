@@ -1,21 +1,11 @@
 ---
-- name: Ensure keyrings directory
-  ansible.builtin.file:
-    path: /etc/apt/keyrings
-    state: directory
-    mode: "0755"
-
-- name: Add Jenkins repository key
-  ansible.builtin.get_url:
-    url: "{{ jenkins_key_url }}"
-    dest: /etc/apt/keyrings/jenkins-keyring.asc
-    mode: "0644"
-
-- name: Add Jenkins repository
-  ansible.builtin.apt_repository:
-    repo: "{{ jenkins_repo }}"
-    filename: jenkins
-    state: present
+- name: Add Jenkins apt repository (deb822, signing key fetched from signed_by URL)
+  ansible.builtin.deb822_repository:
+    name: jenkins
+    types: deb
+    uris: https://pkg.jenkins.io/debian-stable
+    suites: binary/
+    signed_by: "{{ jenkins_key_url }}"
 
 - name: Install Jenkins
   ansible.builtin.apt:
