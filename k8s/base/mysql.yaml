@@ -1,0 +1,93 @@
+# Headless service: gives the StatefulSet pod the stable DNS name
+# mysql-0.mysql-headless.ivolve.svc.cluster.local
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-headless
+  namespace: ivolve
+  labels:
+    app: mysql
+spec:
+  clusterIP: None
+  selector:
+    app: mysql
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: ivolve
+spec:
+  serviceName: mysql-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.4
+          ports:
+            - name: mysql
+              containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ivolve-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: ivolve-config
+                  key: DB_NAME
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ivolve-secret
+                  key: DB_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ivolve-secret
+                  key: DB_PASSWORD
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD" --silent
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 1Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: ivolve-mysql-sc
+        resources:
+          requests:
+            storage: 5Gi

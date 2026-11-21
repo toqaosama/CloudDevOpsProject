@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roadmap-service
+  namespace: ivolve
+  labels:
+    app: roadmap-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: roadmap-service
+  template:
+    metadata:
+      labels:
+        app: roadmap-service
+    spec:
+      containers:
+        - name: roadmap-service
+          image: roadmap-service   # set per environment by the overlay (kustomize images)
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /api/roadmap
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: roadmap-service
+  namespace: ivolve
+spec:
+  selector:
+    app: roadmap-service
+  ports:
+    - port: 8080
+      targetPort: 8080

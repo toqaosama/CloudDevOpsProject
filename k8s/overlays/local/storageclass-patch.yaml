@@ -1,0 +1,10 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ivolve-mysql-sc
+provisioner: k8s.io/minikube-hostpath
+parameters:
+  type: null
+  encrypted: null
+reclaimPolicy: Delete
+volumeBindingMode: Immediate

@@ -1,0 +1,49 @@
+// CI pipeline for the roadmap-service microservice (stages from the shared library in /vars)
+@Library('ivolve-final-lib') _
+
+pipeline {
+    agent { label 'slave' }
+
+    options {
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
+    environment {
+        SERVICE  = 'roadmap-service'
+        // local: minikube registry addon. ECR: '<ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/clouddevops'
+        REGISTRY = 'localhost:5000'
+        IMAGE    = "${REGISTRY}/${SERVICE}:${BUILD_NUMBER}"
+        OVERLAY  = 'k8s/overlays/local'
+    }
+
+    stages {
+        stage('Build Image') {
+            steps { buildImage(image: env.IMAGE, context: env.SERVICE) }
+        }
+        stage('Scan Image') {
+            steps { scanImage(image: env.IMAGE) }
+        }
+        stage('Push Image') {
+            steps { pushImage(image: env.IMAGE) }
+        }
+        stage('Delete Image Locally') {
+            steps { deleteImageLocally(image: env.IMAGE) }
+        }
+        stage('Update Manifests') {
+            steps { updateManifests(service: env.SERVICE, tag: env.BUILD_NUMBER, overlay: env.OVERLAY) }
+        }
+        stage('Push Manifests') {
+            steps {
+                pushManifests(files: "${env.OVERLAY}/kustomization.yaml",
+                              message: "${env.SERVICE}: image tag ${env.BUILD_NUMBER}",
+                              credentialsId: 'github')
+            }
+        }
+    }
+
+    post {
+        success { echo "${env.IMAGE} pushed - Argo CD will deploy it" }
+        always  { cleanWs() }
+    }
+}

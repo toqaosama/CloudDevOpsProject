@@ -1,0 +1,28 @@
+# Argo CD Application: watches k8s/overlays/local in GitHub and keeps the cluster in sync.
+# For EKS use application-eks.yaml (path k8s/overlays/eks).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ivolve-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/toqaosama/CloudDevOpsProject.git
+    targetRevision: main
+    path: k8s/overlays/local
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ivolve
+  syncPolicy:
+    automated:
+      prune: true      # delete resources removed from Git
+      selfHeal: true   # revert manual changes in the cluster
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

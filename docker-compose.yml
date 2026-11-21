@@ -1,0 +1,76 @@
+# Build and test the whole application locally:
+#   cp .env.example .env      # adjust values if needed
+#   docker compose up -d --build
+#   open http://localhost:3000
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: ivolve-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks: [backend]
+
+  auth-service:
+    build: ./auth-service
+    image: ivolve/auth-service:local
+    container_name: ivolve-auth
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    networks: [backend, frontend]
+
+  roadmap-service:
+    build: ./roadmap-service
+    image: ivolve/roadmap-service:local
+    container_name: ivolve-roadmap
+    restart: unless-stopped
+    networks: [frontend]
+
+  frontend:
+    build: ./frontend
+    image: ivolve/frontend:local
+    container_name: ivolve-frontend
+    restart: unless-stopped
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:5000
+      ROADMAP_SERVICE_URL: http://roadmap-service:8080
+      SESSION_SECRET: ${SESSION_SECRET}
+    ports:
+      - "3000:3000"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      roadmap-service:
+        condition: service_started
+    networks: [frontend]
+
+volumes:
+  mysql-data:
+
+networks:
+  frontend:
+  backend:

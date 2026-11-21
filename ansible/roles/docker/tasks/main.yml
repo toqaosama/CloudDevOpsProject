@@ -1,0 +1,28 @@
+---
+- name: Install Docker
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Start and enable Docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Make sure the jenkins group/user exist before adding it to docker
+  ansible.builtin.user:
+    name: jenkins
+    system: true
+    create_home: false
+  when: "'jenkins' in docker_users"
+
+- name: Allow users to run docker
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop: "{{ docker_users }}"
+  notify: Restart jenkins if present

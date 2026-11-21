@@ -1,0 +1,18 @@
+# minikube: images from the minikube registry addon (localhost:5000), hostpath storage.
+# The Jenkins "Update Manifests" stage changes the newTag values below.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+patches:
+  - path: storageclass-patch.yaml
+images:
+  - name: frontend
+    newName: localhost:5000/frontend
+    newTag: "latest"
+  - name: auth-service
+    newName: localhost:5000/auth-service
+    newTag: "latest"
+  - name: roadmap-service
+    newName: localhost:5000/roadmap-service
+    newTag: "latest"

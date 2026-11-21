@@ -1,0 +1,14 @@
+# Storage for the MySQL StatefulSet.
+# EBS gp3 on EKS (needs the aws-ebs-csi-driver addon, created by terraform/modules/eks).
+# The local overlay switches the provisioner to the minikube hostpath provisioner.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ivolve-mysql-sc
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  encrypted: "true"
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true

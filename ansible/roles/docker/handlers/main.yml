@@ -1,0 +1,4 @@
+---
+- name: Restart jenkins if present
+  ansible.builtin.shell: systemctl is-enabled jenkins && systemctl restart jenkins || true
+  changed_when: true

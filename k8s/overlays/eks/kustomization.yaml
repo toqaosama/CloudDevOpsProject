@@ -1,0 +1,16 @@
+# EKS: images from ECR. Replace <ACCOUNT_ID> with your AWS account id
+# (terraform output ecr_repository_urls). The Jenkins "Update Manifests" stage changes newTag.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+images:
+  - name: frontend
+    newName: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/clouddevops/frontend
+    newTag: "latest"
+  - name: auth-service
+    newName: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/clouddevops/auth-service
+    newTag: "latest"
+  - name: roadmap-service
+    newName: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/clouddevops/roadmap-service
+    newTag: "latest"

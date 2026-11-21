@@ -1,0 +1,28 @@
+---
+- name: Configure the Jenkins server
+  hosts: role_jenkins
+  become: true
+
+  roles:
+    - java
+    - docker
+    - trivy
+    - jenkins
+
+  post_tasks:
+    - name: Collect versions
+      ansible.builtin.shell: |
+        java -version 2>&1 | head -1
+        docker --version
+        trivy --version | head -1
+        systemctl is-active jenkins
+      register: versions
+      changed_when: false
+
+    - name: Show versions
+      ansible.builtin.debug:
+        var: versions.stdout_lines
+
+    - name: Initial Jenkins admin password location
+      ansible.builtin.debug:
+        msg: "sudo cat /var/lib/jenkins/secrets/initialAdminPassword"

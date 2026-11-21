@@ -1,0 +1,15 @@
+# Dynamic inventory: every running EC2 with tag role=jenkins (created by terraform/modules/server)
+plugin: amazon.aws.aws_ec2
+regions:
+  - us-east-1
+filters:
+  tag:role: jenkins
+  instance-state-name: running
+hostnames:
+  - tag:Name
+compose:
+  ansible_host: public_ip_address
+keyed_groups:
+  # -> group "role_jenkins"
+  - key: tags.role
+    prefix: role

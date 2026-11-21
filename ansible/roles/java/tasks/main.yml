@@ -1,0 +1,9 @@
+---
+- name: Install Java
+  ansible.builtin.apt:
+    name:
+      - fontconfig
+      - "{{ java_package }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
