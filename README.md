@@ -208,6 +208,21 @@ After every pipeline run, Argo CD picks up the new tag from Git and rolls out th
 
 ---
 
+### 3.7 Test access through the LoadBalancer
+
+```bash
+minikube tunnel                              # gives frontend-lb an external IP (127.0.0.1 locally)
+kubectl get svc frontend-lb -n ivolve        # EXTERNAL-IP / PORT(S)
+# open http://127.0.0.1:8090  (on EKS: http://<NLB DNS name>)
+```
+
+### 3.8 Watching the pipelines
+
+Jenkins ships with **Pipeline Graph View** (the *Stages* page of every build). For a wall dashboard of all
+jobs, install the **Build Monitor View** plugin.
+
+---
+
 ## 4. Results
 
 See [docs/results.md](docs/results.md) for the screenshots of every part.
