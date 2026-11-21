@@ -9,7 +9,7 @@ patches:
 images:
   - name: frontend
     newName: localhost:5000/frontend
-    newTag: "latest"
+    newTag: "1"
   - name: auth-service
     newName: localhost:5000/auth-service
     newTag: "1"
