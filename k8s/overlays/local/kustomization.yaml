@@ -19,4 +19,4 @@ images:
     newTag: "1"
   - name: roadmap-service
     newName: localhost:5000/roadmap-service
-    newTag: "latest"
+    newTag: "2"
