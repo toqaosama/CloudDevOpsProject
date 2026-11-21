@@ -4,6 +4,13 @@ kind: Ingress
 metadata:
   name: frontend-ingress
   namespace: ivolve
+  annotations:
+    # The frontend keeps the login session in memory (express-session MemoryStore).
+    # With 2 replicas every user must stay on the same pod -> cookie-based sticky sessions.
+    nginx.ingress.kubernetes.io/affinity: cookie
+    nginx.ingress.kubernetes.io/affinity-mode: persistent
+    nginx.ingress.kubernetes.io/session-cookie-name: ivolve-route
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "86400"
 spec:
   ingressClassName: nginx
   rules:
