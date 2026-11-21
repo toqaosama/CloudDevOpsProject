@@ -60,7 +60,7 @@ services:
       ROADMAP_SERVICE_URL: http://roadmap-service:8080
       SESSION_SECRET: ${SESSION_SECRET}
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
       auth-service:
         condition: service_healthy
