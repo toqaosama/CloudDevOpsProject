@@ -1,0 +1,4 @@
+# minikube tunnel needs root for ports < 1024, so locally the load balancer listens on 8090
+- op: replace
+  path: /spec/ports/0/port
+  value: 8090

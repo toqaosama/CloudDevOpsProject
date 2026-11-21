@@ -6,6 +6,10 @@ resources:
   - ../../base
 patches:
   - path: storageclass-patch.yaml
+  - path: frontend-lb-patch.yaml
+    target:
+      kind: Service
+      name: frontend-lb
 images:
   - name: frontend
     newName: localhost:5000/frontend

@@ -9,4 +9,5 @@ resources:
   - auth-service.yaml
   - roadmap-service.yaml
   - frontend.yaml
+  - frontend-lb.yaml
   - ingress.yaml
