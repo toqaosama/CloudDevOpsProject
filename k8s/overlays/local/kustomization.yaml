@@ -12,7 +12,7 @@ images:
     newTag: "latest"
   - name: auth-service
     newName: localhost:5000/auth-service
-    newTag: "latest"
+    newTag: "1"
   - name: roadmap-service
     newName: localhost:5000/roadmap-service
     newTag: "latest"
