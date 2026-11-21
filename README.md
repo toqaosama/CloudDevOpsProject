@@ -77,6 +77,10 @@ Configuration comes from the `ivolve-config` ConfigMap (hosts, ports, DB name) a
 
 More detail: [docs/architecture.md](docs/architecture.md).
 
+**Repository on GitHub:**
+
+![GitHub repository](docs/screenshots/github-repo.png)
+
 ---
 
 ## 2. Repository structure
@@ -131,6 +135,14 @@ docker compose ps             # all services running, auth-service and mysql hea
 
 Open http://localhost:3000, create an account, log in and see the roadmap page.
 
+All containers up, sign-up / login / roadmap work, the user is saved in MySQL (bcrypt hash):
+
+![docker compose test](docs/screenshots/compose-test.png)
+
+| Login page | Roadmap page after login |
+|---|---|
+| ![login](docs/screenshots/compose-login-page.png) | ![roadmap](docs/screenshots/compose-roadmap-page.png) |
+
 ### 3.2 Provision AWS with Terraform
 
 ```bash
@@ -150,6 +162,10 @@ aws eks update-kubeconfig --region us-east-1 --name clouddevops-eks
 
 Destroy everything afterwards: `terraform destroy` (EKS, NAT and EC2 cost money while running).
 
+`fmt`, `init` and `validate` pass for the main stack and the bootstrap:
+
+![terraform validate](docs/screenshots/terraform-validate.png)
+
 ### 3.3 Configure the Jenkins server with Ansible
 
 ```bash
@@ -159,6 +175,10 @@ pip install boto3 botocore
 ansible-inventory --graph          # finds the EC2 by tag role=jenkins
 ansible-playbook playbook.yml      # java, docker, trivy, jenkins
 ```
+
+Dynamic inventory, roles and playbook (syntax check + task list):
+
+![ansible](docs/screenshots/ansible-check.png)
 
 ### 3.4 Kubernetes
 
@@ -173,6 +193,11 @@ kubectl apply -k k8s/overlays/local    # or let Argo CD do it (3.6)
 
 EKS: install the NGINX ingress controller, replace `<ACCOUNT_ID>` in `k8s/overlays/eks/kustomization.yaml`,
 then use `argocd/application-eks.yaml`.
+
+All resources running in namespace `ivolve` (Deployments, StatefulSet + PVC, StorageClass, Services,
+headless service, LoadBalancer, Ingress, ConfigMap, Secret):
+
+![kubernetes resources](docs/screenshots/k8s-resources.png)
 
 ### 3.5 Jenkins
 
@@ -195,6 +220,26 @@ Shared library steps (`vars/`):
 | `updateManifests` | Update Manifests (new tag in the kustomize overlay) |
 | `pushManifests` | Push Manifests (commit + push with retry/rebase) |
 
+The 3 pipelines in Jenkins:
+
+![jenkins jobs](docs/screenshots/jenkins-folder.png)
+
+**frontend** – all 6 stages on the `slave` agent:
+
+![frontend pipeline](docs/screenshots/jenkins-frontend-stages.png)
+
+**auth-service:**
+
+![auth-service pipeline](docs/screenshots/jenkins-auth-service-stages.png)
+
+**roadmap-service:**
+
+![roadmap-service pipeline](docs/screenshots/jenkins-roadmap-service-stages.png)
+
+*Push Manifests* commits the new image tags to GitHub as user `jenkins`:
+
+![commits](docs/screenshots/github-commits.png)
+
 ### 3.6 Argo CD
 
 ```bash
@@ -205,6 +250,9 @@ kubectl get application ivolve-app -n argocd    # Synced / Healthy
 ```
 
 After every pipeline run, Argo CD picks up the new tag from Git and rolls out the new image.
+The application is **Synced** to the last Jenkins commit and **Healthy**:
+
+![argocd](docs/screenshots/argocd-app.png)
 
 ---
 
@@ -216,6 +264,10 @@ kubectl get svc frontend-lb -n ivolve        # EXTERNAL-IP / PORT(S)
 # open http://127.0.0.1:8090  (on EKS: http://<NLB DNS name>)
 ```
 
+| Login through the LoadBalancer | Roadmap page after login |
+|---|---|
+| ![lb login](docs/screenshots/lb-login-page.png) | ![lb roadmap](docs/screenshots/lb-roadmap-page.png) |
+
 ### 3.8 Watching the pipelines
 
 Jenkins ships with **Pipeline Graph View** (the *Stages* page of every build). For a wall dashboard of all
@@ -225,4 +277,8 @@ jobs, install the **Build Monitor View** plugin.
 
 ## 4. Results
 
-See [docs/results.md](docs/results.md) for the screenshots of every part.
+Everything above was run for real on a local environment (Docker Desktop + minikube, Jenkins with a Docker
+agent, Argo CD). The AWS part (Terraform, Ansible dynamic inventory) is delivered as validated code and was not
+applied, to avoid cloud cost.
+
+All screenshots and the problems fixed during the runs: [docs/results.md](docs/results.md).
